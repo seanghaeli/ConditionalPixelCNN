@@ -1,6 +1,11 @@
 import torch.nn as nn
 from layers import *
 
+from bidict import bidict
+my_bidict = bidict({'Class0': 0, 
+                    'Class1': 1,
+                    'Class2': 2,
+                    'Class3': 3})
 
 class PixelCNNLayer_up(nn.Module):
     def __init__(self, nr_resnet, nr_filters, resnet_nonlinearity):
@@ -52,7 +57,7 @@ class PixelCNNLayer_down(nn.Module):
 
 class PixelCNN(nn.Module):
     def __init__(self, nr_resnet=5, nr_filters=80, nr_logistic_mix=10,
-                    resnet_nonlinearity='concat_elu', input_channels=3):
+                    resnet_nonlinearity='concat_elu', input_channels=3,num_classes=4,embedding_dim=3*32*32):
         super(PixelCNN, self).__init__()
         if resnet_nonlinearity == 'concat_elu' :
             self.resnet_nonlinearity = lambda x : concat_elu(x)
@@ -64,7 +69,7 @@ class PixelCNN(nn.Module):
         self.nr_logistic_mix = nr_logistic_mix
         self.right_shift_pad = nn.ZeroPad2d((1, 0, 0, 0))
         self.down_shift_pad  = nn.ZeroPad2d((0, 0, 1, 0))
-
+        
         down_nr_resnet = [nr_resnet] + [nr_resnet + 1] * 2
         self.down_layers = nn.ModuleList([PixelCNNLayer_down(down_nr_resnet[i], nr_filters,
                                                 self.resnet_nonlinearity) for i in range(3)])
@@ -95,9 +100,12 @@ class PixelCNN(nn.Module):
         num_mix = 3 if self.input_channels == 1 else 10
         self.nin_out = nin(nr_filters, num_mix * nr_logistic_mix)
         self.init_padding = None
+        self.embeddings = nn.Embedding(num_classes, embedding_dim)
 
-
-    def forward(self, x, sample=False):
+    def forward(self, x, labels, sample=False):
+        labelNums = [my_bidict[item] for item in labels]
+        embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labelNums]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
+        x = x + embeddings
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]
