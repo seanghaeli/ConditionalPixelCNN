@@ -85,7 +85,7 @@ if __name__ == '__main__':
     model = model.to(device)
     #Attention: the path of the model is fixed to 'models/conditional_pixelcnn.pth'
     #You should save your model to this path
-    model.load_state_dict(torch.load('models/conditional_pixelcnn_small_depth.pth'))
+    model.load_state_dict(torch.load('models/pcnn_cpen455_from_scratch_299.pth',map_location=torch.device(device)))
     model.eval()
     print('model parameters loaded')
     acc = classifier(model = model, data_loader = dataloader, device = device)
