@@ -10,3 +10,4 @@ python pcnn_train.py \
 --lr_decay 0.999995 \
 --max_epochs 500 \
 --en_wandb True \
+--tag "large model" \
