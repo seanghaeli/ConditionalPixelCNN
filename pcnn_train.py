@@ -38,7 +38,11 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
     for batch_idx, item in enumerate(tqdm(data_loader)):
         model_input, categories = item
         model_input = model_input.to(device)
-        model_output = model(model_input,categories)
+        if mode== 'val':
+            with torch.no_grad():
+                model_output = model(model_input,categories)
+        else:
+            model_output = model(model_input,categories)
         loss = loss_op(model_input, model_output)
         loss_tracker.update(loss.item()/deno)
         if mode == 'training':
@@ -46,12 +50,11 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
             loss.backward()
             optimizer.step()
         elif mode == 'val':
-            with torch.no_grad():
-                original_label = [my_bidict[item] for item in categories]
-                original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
-                answer = get_label(model, model_input, device)
-                correct_num = torch.sum(answer == original_label)
-                acc_tracker.update(correct_num.item(), model_input.shape[0])
+            original_label = [my_bidict[item] for item in categories]
+            original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
+            answer = get_label(model, model_input, device)
+            correct_num = torch.sum(answer == original_label)
+            acc_tracker.update(correct_num.item(), model_input.shape[0])
         
     if args.en_wandb:
         wandb.log({mode + "-Average-BPD" : loss_tracker.get_mean()})
