@@ -1,6 +1,6 @@
 python pcnn_train.py \
 --batch_size 16 \
---sample_batch_size 32 \
+--sample_batch_size 50 \
 --sampling_interval 50 \
 --save_interval 50 \
 --dataset cpen455 \
