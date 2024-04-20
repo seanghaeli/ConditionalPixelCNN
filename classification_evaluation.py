@@ -28,7 +28,7 @@ def get_label(model, model_input, device):
             if curr_loss[j] < best_loss[j]:
                 best_ans[j] = i
                 best_loss[j] = curr_loss[j]
-    return torch.tensor(best_ans)
+    return torch.tensor(best_ans, device=device)
 # End of your code
 
 def classifier(model, data_loader, device):

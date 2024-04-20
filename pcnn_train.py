@@ -23,7 +23,7 @@ def get_label(model, model_input, device):
             if curr_loss[j] < best_loss[j]:
                 best_ans[j] = i
                 best_loss[j] = curr_loss[j]
-    return torch.tensor(best_ans)
+    return torch.tensor(best_ans, device=device)
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
     if mode == 'training':
