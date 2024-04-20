@@ -13,6 +13,17 @@ from pprint import pprint
 import argparse
 from pytorch_fid.fid_score import calculate_fid_given_paths
 
+def get_label(model, model_input, device):
+    batch_size = model_input.shape[0]
+    best_loss = [float('inf')]*batch_size
+    best_ans = [0]*batch_size
+    for i in range(4):
+        curr_loss = discretized_mix_logistic_loss(model_input, model(model_input,[i]*batch_size),sum_batch=False)
+        for j in range(batch_size):
+            if curr_loss[j] < best_loss[j]:
+                best_ans[j] = i
+                best_loss[j] = curr_loss[j]
+    return torch.tensor(best_ans)
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
     if mode == 'training':
@@ -22,6 +33,7 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
         
     deno =  args.batch_size * np.prod(args.obs) * np.log(2.)        
     loss_tracker = mean_tracker()
+    acc_tracker = ratio_tracker()
     
     for batch_idx, item in enumerate(tqdm(data_loader)):
         model_input, categories = item
@@ -33,10 +45,18 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+        elif mode == 'val':
+            original_label = [my_bidict[item] for item in categories]
+            original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
+            answer = get_label(model, model_input, device)
+            correct_num = torch.sum(answer == original_label)
+            acc_tracker.update(correct_num.item(), model_input.shape[0])
         
     if args.en_wandb:
         wandb.log({mode + "-Average-BPD" : loss_tracker.get_mean()})
         wandb.log({mode + "-epoch": epoch})
+        if mode == 'val':
+            wandb.log({mode + "-classification-accuracy": acc_tracker.get_ratio()})
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -75,6 +95,8 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--lr', type=float,
                         default=0.0002, help='Base learning rate')
     parser.add_argument('-e', '--lr_decay', type=float, default=0.999995,
+
+
                         help='Learning rate decay, applied every step of the optimization')
     parser.add_argument('-b', '--batch_size', type=int, default=64,
                         help='Batch size during training per GPU')
@@ -220,7 +242,8 @@ if __name__ == '__main__':
         
         if epoch % args.sampling_interval == 0:
             print('......sampling......')
-            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op)
+            random_labels = np.random.randint(0, 4, size=args.sample_batch_size)
+            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op,random_labels)
             sample_t = rescaling_inv(sample_t)
             save_images(sample_t, args.sample_dir)
             sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))

@@ -103,9 +103,11 @@ class PixelCNN(nn.Module):
         self.embeddings = nn.Embedding(num_classes, embedding_dim)
 
     def forward(self, x, labels, sample=False):
-        labelNums = [my_bidict[item] for item in labels]
-        embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labelNums]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
-        x = x + embeddings
+        if labels[0] != 'Unknown':
+            if type(labels[0]) == str:
+                labels = [my_bidict[item] for item in labels]
+            embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
+            x = x + embeddings
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]

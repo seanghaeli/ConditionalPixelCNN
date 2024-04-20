@@ -19,8 +19,16 @@ NUM_CLASSES = len(my_bidict)
 # And get the predicted label, which is a tensor of shape (batch_size,)
 # Begin of your code
 def get_label(model, model_input, device):
-    answer = model(model_input, device)
-    return answer
+    batch_size = model_input.shape[0]
+    best_loss = [float('inf')]*batch_size
+    best_ans = [0]*batch_size
+    for i in range(4):
+        curr_loss = discretized_mix_logistic_loss(model_input, model(model_input,[i]*batch_size),sum_batch=False)
+        for j in range(batch_size):
+            if curr_loss[j] < best_loss[j]:
+                best_ans[j] = i
+                best_loss[j] = curr_loss[j]
+    return torch.tensor(best_ans)
 # End of your code
 
 def classifier(model, data_loader, device):
@@ -47,6 +55,12 @@ if __name__ == '__main__':
                         default=32, help='Batch size for inference')
     parser.add_argument('-m', '--mode', type=str,
                         default='validation', help='Mode for the dataset')
+    parser.add_argument('-q', '--nr_resnet', type=int, default=5,
+                        help='Number of residual blocks per stage of the model')
+    parser.add_argument('-n', '--nr_filters', type=int, default=160,
+                        help='Number of filters to use across the model. Higher = larger model.')
+    parser.add_argument('-o', '--nr_logistic_mix', type=int, default=10,
+                        help='Number of logistic components in the mixture. Higher = more flexible model')
     
     args = parser.parse_args()
     pprint(args.__dict__)
@@ -64,13 +78,14 @@ if __name__ == '__main__':
     #Write your code here
     #You should replace the random classifier with your trained model
     #Begin of your code
-    model = random_classifier(NUM_CLASSES)
+    model = PixelCNN(nr_resnet=args.nr_resnet, nr_filters=args.nr_filters, 
+                input_channels=3, nr_logistic_mix=args.nr_logistic_mix)
     #End of your code
     
     model = model.to(device)
     #Attention: the path of the model is fixed to 'models/conditional_pixelcnn.pth'
     #You should save your model to this path
-    model.load_state_dict(torch.load('models/conditional_pixelcnn.pth'))
+    model.load_state_dict(torch.load('models/conditional_pixelcnn_small_depth.pth'))
     model.eval()
     print('model parameters loaded')
     acc = classifier(model = model, data_loader = dataloader, device = device)
