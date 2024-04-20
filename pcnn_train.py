@@ -14,16 +14,17 @@ import argparse
 from pytorch_fid.fid_score import calculate_fid_given_paths
 
 def get_label(model, model_input, device):
-    batch_size = model_input.shape[0]
-    best_loss = [float('inf')]*batch_size
-    best_ans = [0]*batch_size
-    for i in range(4):
-        curr_loss = discretized_mix_logistic_loss(model_input, model(model_input,[i]*batch_size),sum_batch=False)
-        for j in range(batch_size):
-            if curr_loss[j] < best_loss[j]:
-                best_ans[j] = i
-                best_loss[j] = curr_loss[j]
-    return torch.tensor(best_ans, device=device)
+    with torch.no_grad():
+        batch_size = model_input.shape[0]
+        best_loss = [float('inf')]*batch_size
+        best_ans = [0]*batch_size
+        for i in range(4):
+            curr_loss = discretized_mix_logistic_loss(model_input, model(model_input,[i]*batch_size),sum_batch=False)
+            for j in range(batch_size):
+                if curr_loss[j] < best_loss[j]:
+                    best_ans[j] = i
+                    best_loss[j] = curr_loss[j]
+        return torch.tensor(best_ans, device=device)
 
 def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, mode = 'training'):
     if mode == 'training':
