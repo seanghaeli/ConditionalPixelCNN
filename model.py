@@ -151,7 +151,16 @@ class PixelCNN(nn.Module):
                 ul = self.upsize_ul_stream[i](ul)
 
         # x_out = self.nin_out(F.elu(u))
-        x_out = self.nin_out(F.tanh(u+embeddings_u)*F.sigmoid(ul+embeddings_ul))
+        if labels[0] != 'Unknown':
+            if type(labels[0]) == str:
+                labels = [my_bidict[item] for item in labels]
+            # embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
+            embeddings_u = torch.stack([self.embeddings_u.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
+            embeddings_ul = torch.stack([self.embeddings_ul.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
+            # x = x + embeddings
+            x_out = self.nin_out(F.tanh(u+embeddings_u)*F.sigmoid(ul+embeddings_ul))
+        else:
+            x_out = self.nin_out(F.tanh(u)*F.sigmoid(ul))
 
         assert len(u_list) == len(ul_list) == 0, pdb.set_trace()
 
