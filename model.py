@@ -57,7 +57,7 @@ class PixelCNNLayer_down(nn.Module):
 
 class PixelCNN(nn.Module):
     def __init__(self, nr_resnet=5, nr_filters=80, nr_logistic_mix=10,
-                    resnet_nonlinearity='concat_elu', input_channels=3,num_classes=4,embedding_dim=3*32*32):
+                    resnet_nonlinearity='concat_elu', input_channels=3,num_classes=4,embedding_dim=32*32):
         super(PixelCNN, self).__init__()
         if resnet_nonlinearity == 'concat_elu' :
             self.resnet_nonlinearity = lambda x : concat_elu(x)
@@ -71,7 +71,7 @@ class PixelCNN(nn.Module):
         self.down_shift_pad  = nn.ZeroPad2d((0, 0, 1, 0))
         
         down_nr_resnet = [nr_resnet] + [nr_resnet + 1] * 2
-        self.down_layers = nn.ModuleList([PixelCNNLayer_down(down_nr_resnet[i], nr_filters,
+        self.   down_layers = nn.ModuleList([PixelCNNLayer_down(down_nr_resnet[i], nr_filters,
                                                 self.resnet_nonlinearity) for i in range(3)])
 
         self.up_layers   = nn.ModuleList([PixelCNNLayer_up(nr_resnet, nr_filters,
@@ -100,14 +100,18 @@ class PixelCNN(nn.Module):
         num_mix = 3 if self.input_channels == 1 else 10
         self.nin_out = nin(nr_filters, num_mix * nr_logistic_mix)
         self.init_padding = None
-        self.embeddings = nn.Embedding(num_classes, embedding_dim)
+        # self.embeddings = nn.Embedding(num_classes, embedding_dim)
+        self.embeddings_u = nn.Embedding(num_classes, embedding_dim)
+        self.embeddings_ul = nn.Embedding(num_classes, embedding_dim)
 
     def forward(self, x, labels, sample=False):
         if labels[0] != 'Unknown':
             if type(labels[0]) == str:
                 labels = [my_bidict[item] for item in labels]
-            embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
-            x = x + embeddings
+            # embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
+            embeddings_u = torch.stack([self.embeddings_u.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
+            embeddings_ul = torch.stack([self.embeddings_ul.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
+            # x = x + embeddings
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]
@@ -134,11 +138,9 @@ class PixelCNN(nn.Module):
                 # downscale (only twice)
                 u_list  += [self.downsize_u_stream[i](u_list[-1])]
                 ul_list += [self.downsize_ul_stream[i](ul_list[-1])]
-
         ###    DOWN PASS    ###
         u  = u_list.pop()
         ul = ul_list.pop()
-
         for i in range(3):
             # resnet block
             u, ul = self.down_layers[i](u, ul, u_list, ul_list)
@@ -148,7 +150,8 @@ class PixelCNN(nn.Module):
                 u  = self.upsize_u_stream[i](u)
                 ul = self.upsize_ul_stream[i](ul)
 
-        x_out = self.nin_out(F.elu(ul))
+        # x_out = self.nin_out(F.elu(u))
+        x_out = self.nin_out(F.tanh(u+embeddings_u)*F.sigmoid(ul+embeddings_ul))
 
         assert len(u_list) == len(ul_list) == 0, pdb.set_trace()
 
