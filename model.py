@@ -100,7 +100,11 @@ class PixelCNN(nn.Module):
         num_mix = 3 if self.input_channels == 1 else 10
         self.nin_out = nin(nr_filters, num_mix * nr_logistic_mix)
         self.init_padding = None
-        # self.embeddings = nn.Embedding(num_classes, embedding_dim)
+        self.embeddings = nn.Embedding(num_classes, 3*32*32)
+        self.embeddings_u_up = nn.Embedding(num_classes, nr_filters*32*32)
+        self.embeddings_ul_up = nn.Embedding(num_classes, nr_filters*32*32)
+        self.embeddings_u_down = nn.Embedding(num_classes, nr_filters*8*8)
+        self.embeddings_ul_down = nn.Embedding(num_classes, nr_filters*8*8)
         self.embeddings_u = nn.Embedding(num_classes, embedding_dim)
         self.embeddings_ul = nn.Embedding(num_classes, embedding_dim)
 
@@ -108,10 +112,8 @@ class PixelCNN(nn.Module):
         if labels[0] != 'Unknown':
             if type(labels[0]) == str:
                 labels = [my_bidict[item] for item in labels]
-            # embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
-            embeddings_u = torch.stack([self.embeddings_u.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
-            embeddings_ul = torch.stack([self.embeddings_ul.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
-            # x = x + embeddings
+            embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
+            x = x + embeddings
         # similar as done in the tf repo :
         if self.init_padding is not sample:
             xs = [int(y) for y in x.size()]
@@ -126,8 +128,19 @@ class PixelCNN(nn.Module):
 
         ###      UP PASS    ###
         x = x if sample else torch.cat((x, self.init_padding), 1)
-        u_list  = [self.u_init(x)]
-        ul_list = [self.ul_init[0](x) + self.ul_init[1](x)]
+        if labels[0] != 'Unknown':
+            if type(labels[0]) == str:
+                labels = [my_bidict[item] for item in labels]
+            
+            test = torch.stack([self.embeddings_u_up.weight.clone()[class_index] for class_index in labels])
+            embeddings_u_up = torch.stack([self.embeddings_u_up.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),self.nr_filters,32,32)
+            embeddings_ul_up = torch.stack([self.embeddings_ul_up.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),self.nr_filters,32,32)
+            u_list  = [self.u_init(x)+embeddings_u_up]
+            ul_list = [self.ul_init[0](x) + self.ul_init[1](x) + embeddings_ul_up]
+        else:
+            u_list  = [self.u_init(x)]
+            ul_list = [self.ul_init[0](x) + self.ul_init[1](x)]
+
         for i in range(3):
             # resnet block
             u_out, ul_out = self.up_layers[i](u_list[-1], ul_list[-1])
@@ -139,8 +152,16 @@ class PixelCNN(nn.Module):
                 u_list  += [self.downsize_u_stream[i](u_list[-1])]
                 ul_list += [self.downsize_ul_stream[i](ul_list[-1])]
         ###    DOWN PASS    ###
-        u  = u_list.pop()
-        ul = ul_list.pop()
+        if labels[0] != 'Unknown':
+            if type(labels[0]) == str:
+                labels = [my_bidict[item] for item in labels]
+            embeddings_u_down = torch.stack([self.embeddings_u_down.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),self.nr_filters,8,8)
+            embeddings_ul_down = torch.stack([self.embeddings_ul_down.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),self.nr_filters,8,8)
+            u  = u_list.pop() + embeddings_u_down
+            ul = ul_list.pop() + embeddings_ul_down
+        else:
+            u  = u_list.pop()
+            ul = ul_list.pop()
         for i in range(3):
             # resnet block
             u, ul = self.down_layers[i](u, ul, u_list, ul_list)
@@ -154,7 +175,6 @@ class PixelCNN(nn.Module):
         if labels[0] != 'Unknown':
             if type(labels[0]) == str:
                 labels = [my_bidict[item] for item in labels]
-            # embeddings = torch.stack([self.embeddings.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),3,32,32)
             embeddings_u = torch.stack([self.embeddings_u.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
             embeddings_ul = torch.stack([self.embeddings_ul.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
             # x = x + embeddings

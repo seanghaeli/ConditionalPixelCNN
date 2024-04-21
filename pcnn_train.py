@@ -249,7 +249,7 @@ if __name__ == '__main__':
         if epoch % args.sampling_interval == 0:
             print('......sampling......')
             random_labels = np.random.randint(0, 4, size=args.sample_batch_size)
-            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op,random_labels)
+            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op,[0,1,2,3])
             sample_t = rescaling_inv(sample_t)
             save_images(sample_t, args.sample_dir)
             sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
