@@ -28,20 +28,22 @@ def get_label(model, model_input, device):
             if curr_loss[j] < best_loss[j]:
                 best_ans[j] = i
                 best_loss[j] = curr_loss[j]
-    return torch.tensor(best_ans, device=device)
+    return torch.tensor(best_ans, device=device).detach()
 # End of your code
 
 def classifier(model, data_loader, device):
     model.eval()
     acc_tracker = ratio_tracker()
-    for batch_idx, item in enumerate(tqdm(data_loader)):
-        model_input, categories = item
-        model_input = model_input.to(device)
-        original_label = [my_bidict[item] for item in categories]
-        original_label = torch.tensor(original_label, dtype=torch.int64).to(device)
-        answer = get_label(model, model_input, device)
-        correct_num = torch.sum(answer == original_label)
-        acc_tracker.update(correct_num.item(), model_input.shape[0])
+    with torch.no_grad():
+        for batch_idx, item in enumerate(tqdm(data_loader)):
+            model_input, categories = item
+            model_input = model_input.to(device)
+            original_label = [my_bidict[item] for item in categories]
+            original_label = torch.tensor(original_label, dtype=torch.int64).to(device).detach()
+            import pdb; pdb.set_trace()
+            answer = get_label(model, model_input, device)
+            correct_num = torch.sum(answer == original_label)
+            acc_tracker.update(correct_num.item(), model_input.shape[0])
     
     return acc_tracker.get_ratio()
         
@@ -85,7 +87,7 @@ if __name__ == '__main__':
     model = model.to(device)
     #Attention: the path of the model is fixed to 'models/conditional_pixelcnn.pth'
     #You should save your model to this path
-    model.load_state_dict(torch.load('models/pcnn_cpen455_from_scratch_299.pth',map_location=torch.device(device)))
+    model.load_state_dict(torch.load('models/pcnn_cpen455_complex_embeddings_from_scratch_64.pth',map_location=torch.device(device)))
     model.eval()
     print('model parameters loaded')
     acc = classifier(model = model, data_loader = dataloader, device = device)
