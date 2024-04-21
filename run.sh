@@ -1,5 +1,5 @@
 python pcnn_train.py \
---batch_size 1 \
+--batch_size 32 \
 --sample_batch_size 16 \
 --sampling_interval 10 \
 --save_interval 5 \
