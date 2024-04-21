@@ -39,7 +39,7 @@ def train_or_test(model, data_loader, optimizer, loss_op, device, args, epoch, m
     for batch_idx, item in enumerate(tqdm(data_loader)):
         model_input, categories = item
         model_input = model_input.to(device)
-        if mode== 'val' or mode=='train':
+        if mode== 'val' or mode=='test':
             with torch.no_grad():
                 model_output = model(model_input,categories)
         else:
