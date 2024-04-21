@@ -246,17 +246,17 @@ if __name__ == '__main__':
                       epoch = epoch,
                       mode = 'val')
         
-        if epoch % args.sampling_interval == 0:
-            print('......sampling......')
-            random_labels = np.random.randint(0, 4, size=args.sample_batch_size)
-            sample_t = sample(model, args.sample_batch_size, args.obs, sample_op,[0,1,2,3])
-            sample_t = rescaling_inv(sample_t)
-            save_images(sample_t, args.sample_dir)
-            sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
+        # if epoch % args.sampling_interval == 0:
+        #     print('......sampling......')
+        #     random_labels = np.random.randint(0, 4, size=args.sample_batch_size)
+        #     sample_t = sample(model, args.sample_batch_size, args.obs, sample_op,[0,1,2,3])
+        #     sample_t = rescaling_inv(sample_t)
+        #     save_images(sample_t, args.sample_dir)
+        #     sample_result = wandb.Image(sample_t, caption="epoch {}".format(epoch))
             
-            gen_data_dir = args.sample_dir
-            ref_data_dir = args.data_dir +'/test'
-            paths = [gen_data_dir, ref_data_dir]
+        #     gen_data_dir = args.sample_dir
+        #     ref_data_dir = args.data_dir +'/test'
+        #     paths = [gen_data_dir, ref_data_dir]
             # try:
             #     fid_score = calculate_fid_given_paths(paths, 32, device, dims=192)
             #     print("Dimension {:d} works! fid score: {}".format(192, fid_score))

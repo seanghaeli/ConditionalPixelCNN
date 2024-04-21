@@ -17,7 +17,7 @@ from pprint import pprint
 # You should modify this sample function to get the generated images from your model
 # This function should save the generated images to the gen_data_dir, which is fixed as 'samples'
 # Begin of your code
-sample_op = lambda x : sample_from_discretized_mix_logistic(x, 5)
+sample_op = lambda x : sample_from_discretized_mix_logistic(x, 10)
 def my_sample(model, gen_data_dir, sample_batch_size = 16, obs = (3,32,32), sample_op = sample_op):
     for label in my_bidict:
         print(f"Label: {label}")
