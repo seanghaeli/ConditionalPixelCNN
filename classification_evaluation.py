@@ -40,7 +40,7 @@ def classifier(model, data_loader, device):
             model_input = model_input.to(device)
             original_label = [my_bidict[item] for item in categories]
             original_label = torch.tensor(original_label, dtype=torch.int64).to(device).detach()
-            import pdb; pdb.set_trace()
+
             answer = get_label(model, model_input, device)
             correct_num = torch.sum(answer == original_label)
             acc_tracker.update(correct_num.item(), model_input.shape[0])
@@ -63,7 +63,8 @@ if __name__ == '__main__':
                         help='Number of filters to use across the model. Higher = larger model.')
     parser.add_argument('-o', '--nr_logistic_mix', type=int, default=10,
                         help='Number of logistic components in the mixture. Higher = more flexible model')
-    
+    parser.add_argument('-u', '--model_name', type=str,
+                        default='conditional_pixelcnn', help='Location for the dataset')
     args = parser.parse_args()
     pprint(args.__dict__)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -85,9 +86,11 @@ if __name__ == '__main__':
     #End of your code
     
     model = model.to(device)
+    model_name = 'models/' + args.model_name + '.pth'
+    model.load_state_dict(torch.load(model_name,map_location=torch.device(device)))
     #Attention: the path of the model is fixed to 'models/conditional_pixelcnn.pth'
     #You should save your model to this path
-    model.load_state_dict(torch.load('models/pcnn_cpen455_complex_embeddings_from_scratch_64.pth',map_location=torch.device(device)))
+    model.load_state_dict(torch.load(model_name,map_location=torch.device(device)))
     model.eval()
     print('model parameters loaded')
     acc = classifier(model = model, data_loader = dataloader, device = device)
