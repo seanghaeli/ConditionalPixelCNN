@@ -115,6 +115,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     pprint(args.__dict__)
     check_dir_and_create(args.save_dir)
+    print("Is Cuda available?: " + str(torch.cuda.is_available()))
     
     # reproducibility
     torch.manual_seed(args.seed)
