@@ -1,9 +1,9 @@
 python pcnn_train.py \
 --batch_size 32 \
 --sample_batch_size 16 \
---sampling_interval 100 \
---save_interval 50 \
---dataset cpen455 \
+--sampling_interval 10 \
+--save_interval 5 \
+--dataset cpen455_complex_embeddings \
 --nr_resnet 5 \
 --nr_filters 160 \
 --nr_logistic_mix 10 \
