@@ -12,6 +12,8 @@ from model import *
 from dataset import *
 import os
 import torch
+import argparse
+from pprint import pprint
 # You should modify this sample function to get the generated images from your model
 # This function should save the generated images to the gen_data_dir, which is fixed as 'samples'
 # Begin of your code
@@ -27,6 +29,20 @@ def my_sample(model, gen_data_dir, sample_batch_size = 16, obs = (3,32,32), samp
 # End of your code
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('-i', '--model_name', type=str,
+                        default='conditional_pixelcnn', help='Location for the dataset')
+    parser.add_argument('-q', '--nr_resnet', type=int, default=5,
+                        help='Number of residual blocks per stage of the model')
+    parser.add_argument('-n', '--nr_filters', type=int, default=160,
+                        help='Number of filters to use across the model. Higher = larger model.')
+    parser.add_argument('-o', '--nr_logistic_mix', type=int, default=10,
+                        help='Number of logistic components in the mixture. Higher = more flexible model')
+
+    args = parser.parse_args()
+    pprint(args.__dict__)
+
     ref_data_dir = "data/test"
     gen_data_dir = "samples"
     BATCH_SIZE=128
@@ -36,9 +52,11 @@ if __name__ == "__main__":
         os.makedirs(gen_data_dir)
     #Begin of your code
     #Load your model and generate images in the gen_data_dir
-    model = PixelCNN(nr_resnet=1, nr_filters=40, input_channels=3, nr_logistic_mix=5)
+    model = PixelCNN(nr_resnet=args.nr_resnet, nr_filters=args.nr_filters, 
+                input_channels=3, nr_logistic_mix=args.nr_logistic_mix)
     model = model.to(device)
-    model.load_state_dict(torch.load('models/pcnn_cpen455_from_scratch_299.pth',map_location=torch.device(device)))
+    model_name = 'models/' + args.model_name + '.pth'
+    model.load_state_dict(torch.load(model_name,map_location=torch.device(device)))
     model = model.eval()
     print('model parameters loaded')
     my_sample(model=model, gen_data_dir=gen_data_dir)
