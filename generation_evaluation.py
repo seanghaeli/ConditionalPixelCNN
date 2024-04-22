@@ -28,11 +28,11 @@ if __name__ == "__main__":
     
     parser.add_argument('-i', '--model_name', type=str,
                         default='conditional_pixelcnn', help='Location for the dataset')
-    parser.add_argument('-q', '--nr_resnet', type=int, default=5,
+    parser.add_argument('-q', '--nr_resnet', type=int, default=2,
                         help='Number of residual blocks per stage of the model')
-    parser.add_argument('-n', '--nr_filters', type=int, default=160,
+    parser.add_argument('-n', '--nr_filters', type=int, default=100,
                         help='Number of filters to use across the model. Higher = larger model.')
-    parser.add_argument('-o', '--nr_logistic_mix', type=int, default=10,
+    parser.add_argument('-o', '--nr_logistic_mix', type=int, default=5,
                         help='Number of logistic components in the mixture. Higher = more flexible model')
 
     args = parser.parse_args()
