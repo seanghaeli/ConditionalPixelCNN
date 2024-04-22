@@ -43,14 +43,16 @@ def classifier(model, data_loader,dataset,device):
             _, answer, logits = get_label(model, model_input, device)
             logits_all.append(logits.T.cpu())
             answers_all.append(answer)
+
     # ChatGPT prompt: "How to save python list to csv"
+    import pdb; pdb.set_trace()
     save_logits = np.concatenate(logits_all, axis=0)
     np.save('test_logits.npy', np.concatenate(save_logits, axis=0))
     print("Shape of saved logits: " + str(save_logits.shape))
     with open("submission.csv", mode='w', newline='') as file:
         writer = csv.writer (file)
         writer.writerow(['id', 'label'])
-        for image_path, answer in zip(dataset.samples, answers_all):
+        for image_path, answer in zip(dataset.samples, save_logits):
             img_name = os.path.basename(image_path[0])
             writer.writerow([img_name, answer.item()])
         writer.writerow(['fid', 32])
