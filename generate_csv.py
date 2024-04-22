@@ -42,7 +42,7 @@ def classifier(model, data_loader,dataset,device):
             model_input = model_input.to(device)
             _, answer, logits = get_label(model, model_input, device)
             logits_all.append(logits.T.cpu())
-            answers_all.append(answer)
+            answers_all.append(answer.cpu())
 
     # ChatGPT prompt: "How to save python list to csv"
     save_logits = np.concatenate(logits_all, axis=0)
