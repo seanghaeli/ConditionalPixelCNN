@@ -3,10 +3,10 @@ python pcnn_train.py \
 --sample_batch_size 16 \
 --sampling_interval 100 \
 --save_interval 5 \
---dataset cpen455_multi_complex_embeddings_redo \
---nr_resnet 4 \
+--dataset cpen455_multi_complex_embeddings_redo2 \
+--nr_resnet 3 \
 --nr_filters 100 \
---nr_logistic_mix 10 \
+--nr_logistic_mix 5 \
 --lr_decay 0.999995 \
 --max_epochs 50 \
 --en_wandb True \
