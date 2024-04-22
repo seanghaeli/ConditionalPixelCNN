@@ -102,7 +102,7 @@ if __name__ == '__main__':
     #You should save your model to this path
     model.load_state_dict(torch.load(model_name,map_location=torch.device(device)))
     model.eval()
-    classifier(model = model, data_loader = dataloader, device = device)
+    classifier(model = model, data_loader = dataloader, dataset = dataset, device = device)
 
     print('model test set stats saved')
         
