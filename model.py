@@ -160,6 +160,7 @@ class PixelCNN(nn.Module):
             embeddings_ul_down = torch.stack([self.embeddings_ul_down.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),self.nr_filters,8,8)
             u  = u_list.pop() + embeddings_u_down
             ul = ul_list.pop() + embeddings_ul_down
+
         else:
             u  = u_list.pop()
             ul = ul_list.pop()
