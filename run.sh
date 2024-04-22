@@ -4,9 +4,9 @@ python pcnn_train.py \
 --sampling_interval 100 \
 --save_interval 2 \
 --dataset cpen455_multi_complex_embeddings_4 \
---nr_resnet 10 \
---nr_filters 160 \
---nr_logistic_mix 10 \
+--nr_resnet 2 \
+--nr_filters 100 \
+--nr_logistic_mix 5 \
 --lr_decay 0.999995 \
 --max_epochs 50 \
 --en_wandb True \
