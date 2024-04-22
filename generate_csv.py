@@ -53,7 +53,7 @@ def classifier(model, data_loader,dataset,device):
         writer.writerow(['id', 'label'])
         for image_path, answer in zip(dataset.samples, save_logits):
             img_name = os.path.basename(image_path[0])
-            writer.writerow([img_name, answer.item()])
+            writer.writerow([img_name, answer])
         writer.writerow(['fid', 32])
 
             
