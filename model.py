@@ -178,9 +178,9 @@ class PixelCNN(nn.Module):
             embeddings_u = torch.stack([self.embeddings_u.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
             embeddings_ul = torch.stack([self.embeddings_ul.weight.clone()[class_index] for class_index in labels]).unsqueeze(-1).unsqueeze(-1).view(len(labels),1,32,32)
             # x = x + embeddings
-            x_out = self.nin_out(F.elu(u+embeddings_u))
+            x_out = self.nin_out(F.elu(ul+embeddings_ul))
         else:
-            x_out = self.nin_out(F.elu(u))
+            x_out = self.nin_out(F.elu(ul))
 
         assert len(u_list) == len(ul_list) == 0, pdb.set_trace()
 
