@@ -45,7 +45,6 @@ def classifier(model, data_loader,dataset,device):
             answers_all.append(answer)
 
     # ChatGPT prompt: "How to save python list to csv"
-    import pdb; pdb.set_trace()
     save_logits = np.concatenate(logits_all, axis=0)
     np.save('test_logits.npy', np.concatenate(save_logits, axis=0))
     print("Shape of saved logits: " + str(save_logits.shape))
