@@ -32,7 +32,7 @@ def get_label(model, model_input, device):
     return torch.tensor(best_loss, device=device).detach(), torch.tensor(best_ans, device=device).detach(), torch.tensor(normalized_logits, device=device).detach()
 # End of your code
 
-def classifier(model, data_loader, device):
+def classifier(model, data_loader,dataset,device):
     model.eval()
     logits_all = []
     answers_all = []
@@ -86,6 +86,7 @@ if __name__ == '__main__':
                                              batch_size=args.batch_size, 
                                              shuffle=False, 
                                              **kwargs)
+    dataset = CPEN455Dataset(root_dir=args.data_dir, mode=args.mode, transform=ds_transforms)
 
     #Write your code here
     #You should replace the random classifier with your trained model
