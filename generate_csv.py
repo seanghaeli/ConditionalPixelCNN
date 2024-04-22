@@ -28,7 +28,9 @@ def get_label(model, model_input, device):
                 best_ans[j] = i
                 best_loss[j] = curr_loss[j]
     column_sums = torch.sum(logits, dim=0)
-    normalized_logits = logits/column_sums
+    switched_logits = 1-logits/column_sums
+    new_column_sums = torch.sum(switched_logits, dim=0)
+    normalized_logits = switched_logits/new_column_sums
     return torch.tensor(best_loss, device=device).detach(), torch.tensor(best_ans, device=device).detach(), torch.tensor(normalized_logits, device=device).detach()
 # End of your code
 
