@@ -1,10 +1,5 @@
 '''
-This code is used to evaluate the FID score of the generated images.
-You should at least guarantee this code can run without any error on test set.
-And whether this code can run is the most important factor for grading.
-We provide the remaining code,  you can't modify the remaining code, all you should do are:
-1. Modify the sample function to get the generated images from the model and ensure the generated images are saved to the gen_data_dir(line 12-18)
-2. Modify how you call your sample function(line 31)
+Create all the files needed for submission on Hugging Face
 '''
 from pytorch_fid.fid_score import calculate_fid_given_paths
 from utils import *

@@ -22,13 +22,17 @@ def get_label(model, model_input, device):
     batch_size = model_input.shape[0]
     best_loss = [float('inf')]*batch_size
     best_ans = [0]*batch_size
+    logits = torch.zeros((4,batch_size), device=device)
     for i in range(4):
         curr_loss = discretized_mix_logistic_loss(model_input, model(model_input,[i]*batch_size),sum_batch=False)
+        logits[i] = curr_loss
         for j in range(batch_size):
             if curr_loss[j] < best_loss[j]:
                 best_ans[j] = i
                 best_loss[j] = curr_loss[j]
-    return torch.tensor(best_ans, device=device).detach()
+    column_sums = torch.sum(logits, dim=0)
+    normalized_logits = logits/column_sums
+    return torch.tensor(best_loss, device=device).detach(), torch.tensor(best_ans, device=device).detach(), torch.tensor(normalized_logits, device=device).detach()
 # End of your code
 
 def classifier(model, data_loader, device):
@@ -40,8 +44,8 @@ def classifier(model, data_loader, device):
             model_input = model_input.to(device)
             original_label = [my_bidict[item] for item in categories]
             original_label = torch.tensor(original_label, dtype=torch.int64).to(device).detach()
+            _, answer, _ = get_label(model, model_input, device)
 
-            answer = get_label(model, model_input, device)
             correct_num = torch.sum(answer == original_label)
             acc_tracker.update(correct_num.item(), model_input.shape[0])
     
