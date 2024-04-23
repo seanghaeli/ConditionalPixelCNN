@@ -58,6 +58,7 @@ def classifier(model, data_loader,dataset,device):
             img_name = os.path.basename(image_path[0])
             writer.writerow([img_name, answer])
         writer.writerow(['fid', 455])
+        print("Done writing submission.csv")
 
             
 

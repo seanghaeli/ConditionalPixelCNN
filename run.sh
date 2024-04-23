@@ -3,8 +3,8 @@ python pcnn_train.py \
 --sample_batch_size 16 \
 --sampling_interval 100 \
 --save_interval 5 \
---dataset cpen455_multi_complex_embeddings_redo2 \
---nr_resnet 3 \
+--dataset cpen455_multi_complex_embeddings_redo3 \
+--nr_resnet 2 \
 --nr_filters 100 \
 --nr_logistic_mix 5 \
 --lr_decay 0.999995 \
